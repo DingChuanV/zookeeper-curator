@@ -6,6 +6,8 @@ import java.util.Arrays;
 import javax.annotation.Resource;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.curator.framework.CuratorFramework;
+import org.apache.curator.framework.recipes.cache.NodeCache;
+import org.apache.curator.framework.recipes.cache.NodeCacheListener;
 import org.apache.zookeeper.CreateMode;
 import org.apache.zookeeper.data.Stat;
 import org.junit.jupiter.api.Test;
@@ -74,10 +76,42 @@ class ZookeeperCuratorApplicationTests {
   }
 
   @Test
-   void deleteWithChild() throws Exception {
+  void deleteWithChild() throws Exception {
     String path = "/localdev";
     //删除节点的同时一并删除子节点
     curator.delete().guaranteed().deletingChildrenIfNeeded().forPath(path);
+  }
+
+  /**
+   * 监听节点的数据的变化
+   */
+  @Test
+  void addNodeListener() {
+    NodeCache nodeCache = new NodeCache(curator, "/dev");
+    nodeCache.getListenable().addListener(new NodeCacheListener() {
+      @Override
+      public void nodeChanged() throws Exception {
+        log.info("{} path nodechanged", "/dev");
+        printNodeData();
+      }
+    });
+    try {
+      nodeCache.start();
+      System.in.read();
+    } catch (Exception e) {
+      throw new RuntimeException(e);
+    }
+
+  }
+
+  private void printNodeData() {
+    byte[] bytes = new byte[0];
+    try {
+      bytes = curator.getData().forPath("/dev");
+      log.info("bytes : {}", Arrays.toString(bytes));
+    } catch (Exception e) {
+      throw new RuntimeException(e);
+    }
   }
 
   @Test
