@@ -1,0 +1,6 @@
+curator:
+  maxRetries: 5
+  elapsedTimeMs: 5000
+  connectAddress: 127.0.0.1:2181
+  sessionTimeoutMs: 60000
+  connectionTimeoutMs: 4000
